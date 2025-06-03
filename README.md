@@ -20,7 +20,23 @@ A PlatformIO project for ESP32 that fetches and displays a room schedule on an e
 - **Networking**: HTTPClient + ArduinoJson
 - **Backend**: Flask server serving JSON schedule
 
-<pre> ## 📂 Project Structure . ├── src/ # Main source code │ ├── main.cpp │ ├── hardware/ # LED, power control │ └── display/ # GUI rendering, drawing logic ├── lib/ # Custom libraries (if any) ├── include/ │ ├── config_settings.h # WiFi, server, UI settings │ └── constants.h # Derived constants, timers ├── bitmaps/ # UI images (e.g. bezet/vrij icons) ├── platformio.ini # PlatformIO config └── README.md </pre>
+## 📂 Project Structure
+
+```
+.
+├── src/                  # Main source code
+│   ├── main.cpp
+│   ├── hardware/         # LED, power control
+│   └── display/          # GUI rendering, drawing logic
+├── lib/                  # Custom libraries (if any)
+├── include/
+│   ├── config_settings.h # WiFi, server, UI settings
+│   └── constants.h       # Derived constants, timers
+├── bitmaps/              # UI images (e.g. bezet/vrij icons)
+├── platformio.ini        # PlatformIO config
+└── README.md
+```
+
 
 
 ## ⚙️ Configuration
