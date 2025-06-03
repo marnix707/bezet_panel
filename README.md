@@ -44,7 +44,7 @@ const char *password = "YourPassword";
 const String serverIP = "192.168.0.xxx";
 const String roomID = "room1";
 ```
-##🔧 Building & Uploading
+## 🔧 Building & Uploading
 
 # Compile the project
 pio run
