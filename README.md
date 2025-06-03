@@ -46,7 +46,8 @@ const String roomID = "room1";
 ```
 ## 🔧 Building & Uploading
 
-```# Compile the project
+```
+# Compile the project
 pio run
 
 # Upload to the board (check correct port first!)
