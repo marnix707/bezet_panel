@@ -1,3 +1,8 @@
+#include "backend_retriever.h"
+#include <cstdio>   // for sscanf
+#include <ctime>    // for time_t and struct tm
+
+
 bool isCurrentLectureActive(time_t now, const char* startStr, const char* endStr) {
   struct tm startTm = {}, endTm = {};
 

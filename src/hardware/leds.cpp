@@ -22,3 +22,17 @@ void setColor(bool r, bool g, bool b) {
   digitalWrite(GREEN_PIN, g ? HIGH : LOW);
   digitalWrite(BLUE_PIN, b ? HIGH : LOW);
 }
+
+void turnRed()
+{
+  ledcWrite(ledChannelRed, 255);
+  ledcWrite(ledChannelGreen, 0);
+  ledcWrite(ledChannelBlue, 0);
+}
+
+void turnBlue()
+{
+  ledcWrite(ledChannelRed, 0);
+  ledcWrite(ledChannelGreen, 0);
+  ledcWrite(ledChannelBlue, 255);
+}

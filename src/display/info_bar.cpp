@@ -1,6 +1,7 @@
 #include "EPD.h"      // Include the EPD library for controlling the electronic ink screen (E-Paper Display)
 #include "EPD_GUI.h"  // Include the EPD_GUI library for graphical user interface (GUI) operations
 #include "graphics/info_bar_bitmap.h"
+#include "info_bar.h"
 #include <WiFi.h>
 
 

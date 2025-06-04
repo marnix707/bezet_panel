@@ -2,15 +2,34 @@
 #include <HTTPClient.h>
 
 /* Include all project files */
-#include "network/backend_debug.h"
-#include "network/backend_retriever.h"
+#include "backend_debug.h"
+#include "backend_retriever.h"
 
-#include "display/GUI_builder.h"
+#include "GUI_builder.h"
+
+#include "EPD_SPI.h"
+#include "EPD_GUI.h"
+#include "EPD.h"
 
 /* Insert all includes here (is this nessecary?) */
 #include "web_config.h"
 #include "storage.h"
 #include "config_state.h"
+#include "leds.h"
+#include "constants.h"
+#include "config_settings.h"
+
+#include "info_bar.h"
+#include "leds.h"
+
+
+extern unsigned long lastTime;
+extern unsigned long timerDelay;
+
+extern uint8_t ImageBW[];
+extern char label[];
+extern uint8_t lastImageBW[];
+
 
 void printStoredWiFi()
 {
@@ -115,19 +134,7 @@ void syncTimeFromServer()
 }
 
 // === LED Helpers ===
-void turnRed()
-{
-  ledcWrite(ledChannelRed, 255);
-  ledcWrite(ledChannelGreen, 0);
-  ledcWrite(ledChannelBlue, 0);
-}
 
-void turnBlue()
-{
-  ledcWrite(ledChannelRed, 0);
-  ledcWrite(ledChannelGreen, 0);
-  ledcWrite(ledChannelBlue, 255);
-}
 
 // === Screen Change Detection ===
 bool screenHasChanged(const uint8_t *current, const uint8_t *previous, size_t size)
@@ -171,13 +178,11 @@ void setup()
   pinMode(7, OUTPUT);
   digitalWrite(7, HIGH);
 
+  Serial.println("debugtset");
+
   // Init and clear display
   EPD_GPIOInit();
-  EPD_Clear();
-  Paint_NewImage(ImageBW, EPD_W, EPD_H, 0, WHITE);
-  EPD_Full(WHITE);
-  EPD_Display_Part(0, 0, EPD_W, EPD_H, ImageBW);
-  memcpy(lastImageBW, ImageBW, sizeof(ImageBW));
+  UI_clear_all();
 
   // Time & LED init
   syncTimeFromServer();
@@ -187,9 +192,21 @@ void setup()
 // === Main loop ===
 void loop()
 {
+  
   if ((millis() - lastTime) > timerDelay)
   {
     lastTime = millis();
+
+    // Check WiFi connection
+    if (WiFi.status() != WL_CONNECTED && auto_AP_when_disconnected)
+    {
+      Serial.println("[ERROR] WiFi disconnected.");
+
+      WiFi.disconnect(true); // Erase saved network (optional)
+      delay(1000);
+      startConfigPortal(); // Revert to AP
+      return;
+    }
 
     StaticJsonDocument<1536> doc;
 
@@ -204,7 +221,6 @@ void loop()
 
       // === UI rendering ===
       Paint_NewImage(ImageBW, EPD_W, EPD_H, 0, WHITE);
-      delay(10);
       yield();
 
       if (debug_mode)
@@ -213,13 +229,16 @@ void loop()
         Serial.println(ESP.getFreeHeap());
       }
 
-      UI_draw_info_bar();
+      Serial.println("set10");
+      // UI_draw_info_bar();    bring the info bar back later
       yield();
-      delay(5);
+  
 
+      Serial.println("set11");
       UI_draw_time_labels_vertical(32, 250);
       yield();
-      delay(5);
+      delay(50);
+
 
       // UI_draw_time();
       // yield();
@@ -229,10 +248,12 @@ void loop()
       // yield();
       // delay(5);
 
+      Serial.println("set12");
       render_schedule_and_status(schedule, 32, 250, label);
       yield();
       delay(10);
 
+      Serial.println("set13");
       UI_draw_borders();
       yield();
       delay(5);

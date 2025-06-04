@@ -3,7 +3,7 @@
 
 void initConfig();  // Call once in setup()
 
-String getServerIP();
-String getRoomID();
-String getSSID();
-String getPassword();
+extern String getServerIP();
+extern String getRoomID();
+extern String getSSID();
+extern String getPassword();

@@ -1,12 +1,9 @@
 #pragma once
 #include <Arduino.h>
 
-// Timer variables
-unsigned long lastTime = 0;
-unsigned long timerDelay = refresh_interval_seconds * 1000; // 2 seconds
+constexpr size_t SCREEN_BUFFER_SIZE = 5000;  // Adjust to your actual buffer size
+constexpr size_t LABEL_BUFFER_SIZE = 256;
 
-// Scheudule calculation
-const int minutes_in_day = (end_hour - start_hour) * 60;
-
-// Display buffer
-static uint8_t lastImageBW[15000];
+extern uint8_t ImageBW[SCREEN_BUFFER_SIZE];
+extern uint8_t lastImageBW[SCREEN_BUFFER_SIZE];
+extern char label[LABEL_BUFFER_SIZE];

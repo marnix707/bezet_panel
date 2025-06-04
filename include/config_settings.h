@@ -2,7 +2,6 @@
 #include <Arduino.h>
 
 // Constants used in array sizes should be macros
-#define MAX_TITLE_LEN 30
 
 // === Version Info ===
 extern const char* version;
@@ -10,6 +9,7 @@ extern const char* version;
 // === WiFi Defaults ===
 extern const char* default_ssid;
 extern const char* default_password;
+extern const bool auto_AP_when_disconnected;
 
 // === Server Defaults ===
 extern const char* default_serverIP;
@@ -23,6 +23,7 @@ extern bool draw_current_timeline;
 // === Schedule Time Settings ===
 extern const int start_hour;
 extern const int end_hour;
+extern const int minutes_in_day;
 
 // === GUI Constants ===
 extern const int x_end;

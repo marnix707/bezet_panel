@@ -1,24 +1,43 @@
 #include "EPD.h"     // Include the EPD library for controlling the electronic ink screen (E-Paper Display)
 #include "EPD_GUI.h" // Include the EPD_GUI library for graphical user interface (GUI) operations
+
 #include "info_bar.h"
 #include <graphics/bezet_bitmap.h>
-#include "hardware/leds.h"
+#include "leds.h"
 #include <config_settings.h>
 #include <constants.h>
 #include <ArduinoJson.h>
+#include "GUI_builder.h"
+#include "backend_retriever.h"
+#include "config_settings.h"
 
-// Define a black and white image array as the buffer for the e-paper display
-uint8_t ImageBW[15000]; // Define the size based on the resolution of the e-paper display
+extern const int minutes_in_day;
 
-char label[MAX_TITLE_LEN] = {0};
+#define MAX_TITLE_LEN 30
 
 // Clear all content on the display
-// void clear_all() {
-//   EPD_Clear();                                      // Clear the display content
-//   Paint_NewImage(ImageBW, EPD_W, EPD_H, 0, WHITE);  // Create a new image buffer, fill with white
-//   EPD_Full(WHITE);                                  // Fill the entire screen with white
-//   EPD_Display_Part(0, 0, EPD_W, EPD_H, ImageBW);    // Update the display content
-// }
+void UI_clear_all()
+{
+  Serial.println("set");
+  EPD_Clear();
+  Serial.println("set1");
+  Paint_NewImage(ImageBW, EPD_W, EPD_H, 0, WHITE);
+  Serial.println("set2");
+  // EPD_Full(WHITE);
+  Serial.println("set3");
+  EPD_Display_Part(0, 0, EPD_W, EPD_H, ImageBW);
+  Serial.println("set4");
+  memcpy(lastImageBW, ImageBW, sizeof(ImageBW));
+  Serial.println("set5");
+}
+
+void UI_draw_AP_mode()
+{
+  UI_clear_all(); // Clear the display before drawing AP mode
+  // Draw the AP mode text
+  EPD_ShowString(10, 2, "AP Mode", 16, BLACK);
+  EPD_ShowString(10, 18, "Please connect to 'BezetPanel-Setup'", 16, BLACK);
+}
 
 void UI_draw_time()
 {
@@ -62,7 +81,7 @@ void UI_draw_room_free(boolean room_is_free)
   }
 }
 
-void render_schedule_and_status(JsonArray schedule, int start_y, int total_height, char* label)
+void render_schedule_and_status(JsonArray schedule, int start_y, int total_height, char *label)
 {
   const int x_start = time_label_start + booking_start_offset;
   const int rect_width = x_end - x_start;

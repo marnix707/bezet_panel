@@ -6,6 +6,7 @@
 #include <Arduino.h>
 #include <storage.h>
 #include <config_settings.h>
+#include "GUI_builder.h"
 
 Preferences prefs;
 WebServer server(80);
@@ -62,6 +63,7 @@ void startConfigPortal()
     WiFi.mode(WIFI_AP);
     WiFi.softAP("BezetPanel-Setup");
     Serial.println("⚙️ Config portal running on 192.168.4.1");
+    UI_draw_AP_mode();
 
     server.on("/", handleRoot);
     server.on("/save", HTTP_POST, handleSave);

@@ -6,6 +6,7 @@ const char* version = "1.1";
 // === WiFi Defaults ===
 const char* default_ssid = "DefaultSSID";
 const char* default_password = "DefaultPassword";
+const bool auto_AP_when_disconnected = true;
 
 // === Server Defaults ===
 const char* default_serverIP = "192.168.0.100";
@@ -27,3 +28,16 @@ const int rect_offset_right = 2;
 const int vertical_offset = 8;
 const int time_label_start = 150;
 const int booking_start_offset = 50;
+
+// Constants used in array sizes should be macros
+#define MAX_TITLE_LEN 30
+
+// Timer variables
+unsigned long lastTime = 0;
+unsigned long timerDelay = refresh_interval_seconds * 1000; // 2 seconds
+
+// Scheudule calculation
+
+
+const int minutes_in_day = (end_hour - start_hour) * 60;
+
