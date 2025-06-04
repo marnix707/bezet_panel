@@ -2,8 +2,8 @@
 #include <HTTPClient.h>
 
 /* Include all project files */
-#include "network/backend_retriever.h"
 #include "network/backend_debug.h"
+#include "network/backend_retriever.h"
 
 #include "display/GUI_builder.h"
 
@@ -64,7 +64,7 @@ void syncTimeFromServer()
 
     if (debug_mode)
     {
-      Serial.println("[DEBUG] Payload:");
+      Serial.print("[DEBUG] Payload: ");
       Serial.println(payload);
     }
     int timeIndex = payload.indexOf("\"time\":\"");
@@ -89,7 +89,7 @@ void syncTimeFromServer()
       }
       else
       {
-        Serial.println("❌ Failed to parse time string.");
+        Serial.print("❌ Failed to parse time string.\n");
       }
     }
   }
@@ -136,7 +136,7 @@ void setup()
   Serial.begin(115200);
 
   // Welcome Message
-  Serial.print("---- | Starting up BezetPanel V" + version) + " | ----\n";
+  Serial.print("---- | Starting up BezetPanel V" + version + " | ----\n");
 
   // Connect to WiFi
   WiFi.begin(ssid, password);
@@ -146,8 +146,7 @@ void setup()
     delay(500);
     Serial.print(".");
   }
-  Serial.println("");
-  Serial.print("[WIFI] Connected to WiFi network with IP Address: ");
+  Serial.print("\n[WIFI] Connected to WiFi network with IP Address: ");
   Serial.println(WiFi.localIP());
 
   // Power on screen
@@ -224,9 +223,13 @@ void loop()
       yield();
       delay(5);
 
-      UI_draw_time();
-      yield();
-      delay(5);
+      // UI_draw_time();
+      // yield();
+      // delay(5);
+
+      // UI_draw_roomID();
+      // yield();
+      // delay(5);
 
       render_schedule_and_status(schedule, 32, 250);
       yield();

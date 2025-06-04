@@ -26,7 +26,8 @@ const int end_hour = 18;
 
 /* Schedule GUI pixel specifications */
 const int x_end = 400;
-const int rect_offset = 2;
+const int rect_offset_left = 5;
+const int rect_offset_right = 2;
 const int vertical_offset = 8;
 const int max_title_len = 29;
 const int time_label_start = 150;

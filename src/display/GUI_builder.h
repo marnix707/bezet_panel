@@ -20,11 +20,6 @@ char label[max_title_len + 1] = {0};
 //   EPD_Display_Part(0, 0, EPD_W, EPD_H, ImageBW);    // Update the display content
 // }
 
-void UI_draw_info_bar()
-{
-  UI_draw_signal(376, 0);
-}
-
 void UI_draw_time()
 {
   time_t now = time(nullptr);
@@ -32,7 +27,13 @@ void UI_draw_time()
 
   char buffer[16];
   snprintf(buffer, sizeof(buffer), "%02d:%02d", now_tm->tm_hour, now_tm->tm_min);
-  EPD_ShowString(150, 2, buffer, 16, BLACK);
+  EPD_ShowString(10, 195, buffer, 48, BLACK);
+}
+
+void UI_draw_roomID()
+{
+  // EPD_ShowString(150, 2, roomID.c_str(), 16, BLACK);
+  EPD_ShowString(150, 2, String("D1.132 Vak TIS Melektrolab").c_str(), 16, BLACK);
 }
 
 void UI_draw_borders()
@@ -122,7 +123,9 @@ void render_schedule_and_status(JsonArray schedule, int start_y, int total_heigh
       continue;
 
     // Draw booking block
-    EPD_DrawRectangle(x_start + rect_offset, y_start, x_end - rect_offset, y_end, BLACK, 0);
+    bool is_active = isCurrentLectureActive(now, startStr, endStr);
+
+    EPD_DrawRectangle(x_start + rect_offset_left, y_start, x_end - rect_offset_right, y_end, BLACK, is_active ? 1 : 0);
     yield();
 
     if (titleStr && strlen(titleStr) > 0)
@@ -134,7 +137,7 @@ void render_schedule_and_status(JsonArray schedule, int start_y, int total_heigh
       int textY = y_start + (y_end - y_start) / 2 - 8;
       int textX = x_start + (rect_width / 2) - (title.length() * 8 / 2);
 
-      EPD_ShowString(textX, textY, label, 16, BLACK);
+      EPD_ShowString(textX, textY, label, 16, is_active ? WHITE : BLACK);
       yield();
     }
   }
@@ -193,4 +196,11 @@ void UI_draw_time_labels_vertical(int start_y, int total_height)
       EPD_DrawLine(time_label_start + booking_start_offset, y_position, time_label_start + 200, y_position, BLACK);
     }
   }
+}
+
+void UI_draw_info_bar()
+{
+  UI_draw_signal(376, 0);
+  UI_draw_roomID();
+  UI_draw_time();
 }

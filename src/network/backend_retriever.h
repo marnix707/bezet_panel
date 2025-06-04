@@ -1,3 +1,28 @@
+bool isCurrentLectureActive(time_t now, const char* startStr, const char* endStr) {
+  struct tm startTm = {}, endTm = {};
+
+  if (sscanf(startStr, "%d-%d-%dT%d:%d:%d",
+             &startTm.tm_year, &startTm.tm_mon, &startTm.tm_mday,
+             &startTm.tm_hour, &startTm.tm_min, &startTm.tm_sec) != 6 ||
+      sscanf(endStr, "%d-%d-%dT%d:%d:%d",
+             &endTm.tm_year, &endTm.tm_mon, &endTm.tm_mday,
+             &endTm.tm_hour, &endTm.tm_min, &endTm.tm_sec) != 6) {
+    return false;
+  }
+
+  startTm.tm_year -= 1900;
+  startTm.tm_mon -= 1;
+  endTm.tm_year -= 1900;
+  endTm.tm_mon -= 1;
+
+  time_t start = mktime(&startTm);
+  time_t end = mktime(&endTm);
+
+  return now >= start && now < end;
+}
+
+
+
 // // DEPRECATED
 // void printNextUpcomingBooking(const JSONVar& schedule) {
 //   time_t now = time(nullptr);
