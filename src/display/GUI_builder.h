@@ -10,7 +10,7 @@
 // Define a black and white image array as the buffer for the e-paper display
 uint8_t ImageBW[15000]; // Define the size based on the resolution of the e-paper display
 
-char label[max_title_len + 1] = {0};
+char label[MAX_TITLE_LEN] = {0};
 
 // Clear all content on the display
 // void clear_all() {
@@ -62,7 +62,7 @@ void UI_draw_room_free(boolean room_is_free)
   }
 }
 
-void render_schedule_and_status(JsonArray schedule, int start_y, int total_height)
+void render_schedule_and_status(JsonArray schedule, int start_y, int total_height, char* label)
 {
   const int x_start = time_label_start + booking_start_offset;
   const int rect_width = x_end - x_start;
@@ -131,8 +131,8 @@ void render_schedule_and_status(JsonArray schedule, int start_y, int total_heigh
     if (titleStr && strlen(titleStr) > 0)
     {
       memset(label, 0, sizeof(label));
-      String title = String(titleStr).substring(0, max_title_len);
-      title.toCharArray(label, sizeof(label));
+      String title = String(titleStr).substring(0, MAX_TITLE_LEN);
+      title.toCharArray(label, MAX_TITLE_LEN);
 
       int textY = y_start + (y_end - y_start) / 2 - 8;
       int textX = x_start + (rect_width / 2) - (title.length() * 8 / 2);

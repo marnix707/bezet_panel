@@ -1,36 +1,33 @@
 #pragma once
 #include <Arduino.h>
 
-const String version = "1.0";
+// Constants used in array sizes should be macros
+#define MAX_TITLE_LEN 30
 
-/* WiFi network settings */
-const char *ssid = "Connecting..";
-const char *password = "DikkeDekbeer";
+// === Version Info ===
+extern const char* version;
 
-/* Server settings */
-const String serverIP = "192.168.0.130";
-const String roomID = "room1";
+// === WiFi Defaults ===
+extern const char* default_ssid;
+extern const char* default_password;
 
-/* Refresh interval in seconds */
-const int refresh_interval = 2;
+// === Server Defaults ===
+extern const char* default_serverIP;
+extern const char* default_roomID;
 
-/* Activate Debugging mode */
-bool debug_mode = true;
+// === App Settings ===
+extern const int refresh_interval_seconds;
+extern bool debug_mode;
+extern bool draw_current_timeline;
 
-/* Draw current time in the schedule as a line [DEPRECATED]*/
-bool draw_current_timeline = false;
+// === Schedule Time Settings ===
+extern const int start_hour;
+extern const int end_hour;
 
-/* Schedule time config */
-const int start_hour = 8;
-const int end_hour = 18;
-
-/* Schedule GUI pixel specifications */
-const int x_end = 400;
-const int rect_offset_left = 5;
-const int rect_offset_right = 2;
-const int vertical_offset = 8;
-const int max_title_len = 29;
-const int time_label_start = 150;
-const int booking_start_offset = 50;
-
-
+// === GUI Constants ===
+extern const int x_end;
+extern const int rect_offset_left;
+extern const int rect_offset_right;
+extern const int vertical_offset;
+extern const int time_label_start;
+extern const int booking_start_offset;

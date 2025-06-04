@@ -7,6 +7,18 @@
 
 #include "display/GUI_builder.h"
 
+/* Insert all includes here (is this nessecary?) */
+#include "web_config.h"
+#include "storage.h"
+#include "config_state.h"
+
+void printStoredWiFi()
+{
+  Serial.println("Stored WiFi credentials:");
+  Serial.println("SSID: " + getSSID());
+  Serial.println("Password: " + getPassword());
+}
+
 // === Fetch and parse schedule ===
 bool fetchSchedule(JsonDocument &doc)
 {
@@ -14,7 +26,7 @@ bool fetchSchedule(JsonDocument &doc)
   {
     HTTPClient http;
     WiFiClient client;
-    String url = "http://" + serverIP + ":5000/schedule/" + roomID;
+    String url = "http://" + getServerIP() + ":5000/schedule/" + getRoomID();
     http.begin(client, url);
 
     int httpResponseCode = http.GET();
@@ -54,7 +66,7 @@ void syncTimeFromServer()
 {
   HTTPClient http;
   WiFiClient client;
-  String url = "http://" + serverIP + ":5000/now";
+  String url = "http://" + getServerIP() + ":5000/now";
   http.begin(client, url);
   int httpCode = http.GET();
 
@@ -135,53 +147,39 @@ void setup()
 {
   Serial.begin(115200);
 
-  // Welcome Message
-  Serial.print("---- | Starting up BezetPanel V" + version + " | ----\n");
+  Serial.print("----   |   Starting up BezetPanel V" + String(version) + "   |   ----\n");
+  initConfig();
 
-  // Connect to WiFi
-  WiFi.begin(ssid, password);
-  Serial.println("[WIFI] Connecting to " + String(ssid));
-  while (WiFi.status() != WL_CONNECTED)
+  // loadPreferences();
+  printStoredWiFi();
+  delay(1);
+
+  Serial.println("Trying default WiFi...");
+  if (!tryConnectWiFi())
   {
-    delay(500);
-    Serial.print(".");
+    Serial.println("❌ Could not connect to default WiFi. Starting Config Portal.");
+
+    startConfigPortal(); // Captive portal if no saved WiFi
   }
-  Serial.print("\n[WIFI] Connected to WiFi network with IP Address: ");
-  Serial.println(WiFi.localIP());
+
+  Serial.println("✅ WiFi Connected: " + WiFi.localIP().toString());
+
+  String serverIP = getStoredServerIP();
+  String roomID = getStoredRoomID();
 
   // Power on screen
   pinMode(7, OUTPUT);
   digitalWrite(7, HIGH);
 
-  // Init display and clear it
+  // Init and clear display
   EPD_GPIOInit();
-  // EPD_Init_Fast(Fast_Seconds_1_5s);
   EPD_Clear();
   Paint_NewImage(ImageBW, EPD_W, EPD_H, 0, WHITE);
   EPD_Full(WHITE);
-  Paint_NewImage(ImageBW, EPD_W, EPD_H, 0, WHITE);
   EPD_Display_Part(0, 0, EPD_W, EPD_H, ImageBW);
   memcpy(lastImageBW, ImageBW, sizeof(ImageBW));
 
-  // // Fill with black
-  // memset(ImageBW, 0x00, sizeof(ImageBW)); // Black = 0x00
-  // EPD_Display_Part(0, 0, EPD_W, EPD_H, ImageBW);
-  // delay(1000);
-
-  // // Fill with white
-  // memset(ImageBW, 0xFF, sizeof(ImageBW)); // White = 0xFF
-  // EPD_Display_Part(0, 0, EPD_W, EPD_H, ImageBW);
-  // delay(1000);
-
-  // // Repeat one more time (some screens need 2 full cycles)
-  // memset(ImageBW, 0x00, sizeof(ImageBW));
-  // EPD_Display_Part(0, 0, EPD_W, EPD_H, ImageBW);
-  // delay(1000);
-
-  // memset(ImageBW, 0xFF, sizeof(ImageBW));
-  // EPD_Display_Part(0, 0, EPD_W, EPD_H, ImageBW);
-  // delay(1000);
-
+  // Time & LED init
   syncTimeFromServer();
   init_leds();
 }
@@ -231,7 +229,7 @@ void loop()
       // yield();
       // delay(5);
 
-      render_schedule_and_status(schedule, 32, 250);
+      render_schedule_and_status(schedule, 32, 250, label);
       yield();
       delay(10);
 
