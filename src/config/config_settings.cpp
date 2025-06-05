@@ -4,11 +4,11 @@
 const char* version = "1.1";
 
 // === WiFi Defaults ===
-const char* default_ssid = "DefaultSSID";
-const char* default_password = "DefaultPassword";
+const char* default_ssid = "Marni";
+const char* default_password = "bamischijf";
 
 // === Server Defaults ===
-const char* default_serverIP = "192.168.0.100";
+const char* default_serverIP = "172.20.10.2";
 const char* default_roomID = "room1";
 
 // === App Settings ===
