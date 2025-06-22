@@ -26,7 +26,7 @@
 extern unsigned long lastTime;
 extern unsigned long timerDelay;
 
-extern uint8_t ImageBW[];
+extern uint8_t ImageBW[15000];
 extern char label[];
 extern uint8_t lastImageBW[];
 
@@ -45,7 +45,8 @@ bool fetchSchedule(JsonDocument &doc)
   {
     HTTPClient http;
     WiFiClient client;
-    String url = "http://" + getServerIP() + ":5000/schedule/" + getRoomID();
+    String url = "http://" + getServerIP() + ":5000/schedule/" + getRoomID() + "?rssi=" + String(WiFi.RSSI());
+
     http.begin(client, url);
 
     int httpResponseCode = http.GET();
@@ -186,7 +187,9 @@ void setup()
 
   // Time & LED init
   syncTimeFromServer();
+  Serial.println("Time synced with server.");
   init_leds();
+  Serial.println("LEDs initialized.");
 }
 
 // === Main loop ===
@@ -221,7 +224,7 @@ void loop()
 
       // === UI rendering ===
       Paint_NewImage(ImageBW, EPD_W, EPD_H, 0, WHITE);
-      yield();
+      //yield();
 
       if (debug_mode)
       {
@@ -229,34 +232,10 @@ void loop()
         Serial.println(ESP.getFreeHeap());
       }
 
-      Serial.println("set10");
-      // UI_draw_info_bar();    bring the info bar back later
-      yield();
-  
-
-      Serial.println("set11");
+      UI_draw_info_bar();    //bring the info bar back later
       UI_draw_time_labels_vertical(32, 250);
-      yield();
-      delay(50);
-
-
-      // UI_draw_time();
-      // yield();
-      // delay(5);
-
-      // UI_draw_roomID();
-      // yield();
-      // delay(5);
-
-      Serial.println("set12");
       render_schedule_and_status(schedule, 32, 250, label);
-      yield();
-      delay(10);
-
-      Serial.println("set13");
       UI_draw_borders();
-      yield();
-      delay(5);
 
       if (debug_mode)
       {

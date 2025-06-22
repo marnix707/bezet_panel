@@ -12,28 +12,39 @@
 #include "config_settings.h"
 
 extern const int minutes_in_day;
+extern uint8_t ImageBW[15000]; // Buffer for the EPD display
 
 #define MAX_TITLE_LEN 30
 
 // Clear all content on the display
 void UI_clear_all()
 {
-  Serial.println("set");
-  EPD_Clear();
+  Serial.println("set0");
+  //EPD_GPIOInit();  // ensure EPD hardware is initialized
   Serial.println("set1");
-  Paint_NewImage(ImageBW, EPD_W, EPD_H, 0, WHITE);
+
+  EPD_Clear();     // hardware-level clear
+  delay(100);      // let display settle
   Serial.println("set2");
-  // EPD_Full(WHITE);
+
+  Paint_NewImage(ImageBW, EPD_W, EPD_H, 0, WHITE);  // re-init canvas
   Serial.println("set3");
+
+  memset(ImageBW, 0xFF, sizeof(ImageBW));  // white fill (if needed)
   EPD_Display_Part(0, 0, EPD_W, EPD_H, ImageBW);
   Serial.println("set4");
+
   memcpy(lastImageBW, ImageBW, sizeof(ImageBW));
   Serial.println("set5");
+  Serial.println("[DEBUG] Display cleared and canvas initialized.");
 }
+
+
 
 void UI_draw_AP_mode()
 {
-  UI_clear_all(); // Clear the display before drawing AP mode
+  Serial.println("Starting AP Mode");
+  // UI_clear_all(); // Clear the display before drawing AP mode
   // Draw the AP mode text
   EPD_ShowString(10, 2, "AP Mode", 16, BLACK);
   EPD_ShowString(10, 18, "Please connect to 'BezetPanel-Setup'", 16, BLACK);
@@ -193,11 +204,10 @@ void UI_draw_time_labels_vertical(int start_y, int total_height)
   {
     int hour = start_hour + i;
     snprintf(buffer, sizeof(buffer), "%02d:00", hour);
-
     int y = start_y + i * spacing;
     EPD_ShowString(time_label_start, y, buffer, 16, BLACK);
-    delay(1);
-    yield();
+    //delay(1);
+    //yield();
   }
 
   if (draw_current_timeline)
