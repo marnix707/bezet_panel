@@ -24,6 +24,7 @@ extern bool draw_current_timeline;
 extern const int start_hour;
 extern const int end_hour;
 extern const int minutes_in_day;
+extern const int ending_soon_threshold_minutes;
 
 // === GUI Constants ===
 extern const int x_end;
