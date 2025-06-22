@@ -1,15 +1,15 @@
 #include "config_settings.h"
 
 // === Version Info ===
-const char* version = "1.1";
+const char* version = "1.2";
 
 // === WiFi Defaults ===
-const char* default_ssid = "DefaultSSID";
-const char* default_password = "DefaultPassword";
+const char* default_ssid = "Connecting..";
+const char* default_password = "DikkeDekbeer";
 const bool auto_AP_when_disconnected = true;
 
 // === Server Defaults ===
-const char* default_serverIP = "192.168.0.100";
+const char* default_serverIP = "192.168.0.130";
 const char* default_roomID = "room1";
 
 // === App Settings ===
