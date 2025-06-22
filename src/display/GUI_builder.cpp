@@ -13,6 +13,7 @@
 
 extern const int minutes_in_day;
 extern uint8_t ImageBW[15000]; // Buffer for the EPD display
+extern const int ending_soon_threshold_minutes;
 
 #define MAX_TITLE_LEN 30
 
@@ -131,7 +132,7 @@ void render_schedule_and_status(JsonArray schedule, int start_y, int total_heigh
             if (now >= start && now < end)
             {
                 room_free = false;
-                if (difftime(end, now) <= 300) // within 5 minutes
+                if (difftime(end, now) <= 60 * ending_soon_threshold_minutes) // within 5 minutes
                     ending_soon = true;
             }
         }

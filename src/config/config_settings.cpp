@@ -15,6 +15,7 @@ const char* default_roomID = "room2";
 // === App Settings ===
 const int refresh_interval_seconds = 2;
 bool debug_mode = true;
+const int ending_soon_threshold_minutes = 5; // Threshold for ending soon in minutes
 bool draw_current_timeline = false;
 
 // === Schedule Time Settings ===
