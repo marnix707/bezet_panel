@@ -8,3 +8,9 @@ void setColor(bool r, bool g, bool b);
 void turnRed();
 
 void turnBlue();
+
+void turnOrange();
+
+void turnGreen();
+
+void turnOff();

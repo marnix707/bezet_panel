@@ -19,4 +19,6 @@ void UI_draw_time_labels_vertical(int start_y, int total_height);
 
 void UI_draw_AP_mode();
 
+bool screenHasChanged(const uint8_t *current, const uint8_t *previous, size_t size);
+
 

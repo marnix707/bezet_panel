@@ -38,118 +38,6 @@ void printStoredWiFi()
   Serial.println("Password: " + getPassword());
 }
 
-// === Fetch and parse schedule ===
-bool fetchSchedule(JsonDocument &doc)
-{
-  if (WiFi.status() == WL_CONNECTED)
-  {
-    HTTPClient http;
-    WiFiClient client;
-    String url = "http://" + getServerIP() + ":5000/schedule/" + getRoomID() + "?rssi=" + String(WiFi.RSSI());
-
-    http.begin(client, url);
-
-    int httpResponseCode = http.GET();
-    if (httpResponseCode == 200)
-    {
-      DeserializationError error = deserializeJson(doc, http.getStream());
-
-      if (error)
-      {
-        Serial.print(F("deserializeJson() failed: "));
-        Serial.println(error.f_str());
-        http.end();
-        return false;
-      }
-
-      http.end();
-      return true;
-    }
-    else
-    {
-      Serial.print("HTTP error code: ");
-      Serial.println(httpResponseCode);
-    }
-
-    http.end();
-  }
-  else
-  {
-    Serial.println("WiFi not connected");
-  }
-
-  return false;
-}
-
-// === Time Sync ===
-void syncTimeFromServer()
-{
-  HTTPClient http;
-  WiFiClient client;
-  String url = "http://" + getServerIP() + ":5000/now";
-  http.begin(client, url);
-  int httpCode = http.GET();
-
-  if (httpCode == 200)
-  {
-    String payload = http.getString();
-
-    if (debug_mode)
-    {
-      Serial.print("[DEBUG] Payload: ");
-      Serial.println(payload);
-    }
-    int timeIndex = payload.indexOf("\"time\":\"");
-    if (timeIndex != -1)
-    {
-      int quote1 = payload.indexOf("\"", timeIndex + 7);
-      int quote2 = payload.indexOf("\"", quote1 + 1);
-      String timeStr = payload.substring(quote1 + 1, quote2);
-
-      struct tm tm;
-      if (sscanf(timeStr.c_str(), "%d-%d-%dT%d:%d:%d",
-                 &tm.tm_year, &tm.tm_mon, &tm.tm_mday,
-                 &tm.tm_hour, &tm.tm_min, &tm.tm_sec) == 6)
-      {
-        tm.tm_year -= 1900;
-        tm.tm_mon -= 1;
-        time_t t = mktime(&tm);
-        struct timeval now = {.tv_sec = t};
-        settimeofday(&now, nullptr);
-        Serial.print("✅ Time synced: ");
-        Serial.println(timeStr);
-      }
-      else
-      {
-        Serial.print("❌ Failed to parse time string.\n");
-      }
-    }
-  }
-  else
-  {
-    Serial.print("❌ Time sync HTTP error: ");
-    Serial.println(httpCode);
-  }
-
-  http.end();
-}
-
-// === LED Helpers ===
-
-
-// === Screen Change Detection ===
-bool screenHasChanged(const uint8_t *current, const uint8_t *previous, size_t size)
-{
-  for (size_t i = 0; i < size; i++)
-  {
-    if (current[i] != previous[i])
-    {
-      return true;
-    }
-  }
-  return false;
-}
-
 // === Setup ===
 void setup()
 {
@@ -179,17 +67,14 @@ void setup()
   pinMode(7, OUTPUT);
   digitalWrite(7, HIGH);
 
-  Serial.println("debugtset");
-
   // Init and clear display
   EPD_GPIOInit();
   UI_clear_all();
 
   // Time & LED init
   syncTimeFromServer();
-  Serial.println("Time synced with server.");
   init_leds();
-  Serial.println("LEDs initialized.");
+
 }
 
 // === Main loop ===
@@ -253,9 +138,6 @@ void loop()
         EPD_Display_Part(0, 0, EPD_W, EPD_H, ImageBW);
         memcpy(lastImageBW, ImageBW, sizeof(ImageBW));
       }
-
-      yield();
-      delay(10);
     }
     else
     {
@@ -264,6 +146,5 @@ void loop()
 
     memset(label, 0, sizeof(label)); // Clear UI text data if needed
   }
-
   delay(10000); // loop throttle
 }

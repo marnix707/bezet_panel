@@ -10,7 +10,7 @@ const bool auto_AP_when_disconnected = true;
 
 // === Server Defaults ===
 const char* default_serverIP = "192.168.0.130";
-const char* default_roomID = "room1";
+const char* default_roomID = "room2";
 
 // === App Settings ===
 const int refresh_interval_seconds = 2;
