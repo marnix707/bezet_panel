@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "../../../University/E (HBO)/Project_4"
+		},
+		{
+			"name": "bezet_panel",
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"atomic": "cpp",
+			"cstdio": "cpp"
+		}
+	}
+}

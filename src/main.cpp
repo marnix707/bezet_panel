@@ -1,5 +1,6 @@
 #include <WiFi.h>
-#include <PubSubClient.h> 
+#include <PubSubClient.h>
+#include <ArduinoJson.h> // ✅ Nodig voor JSON-documenten
 
 /* Project files */
 #include "backend_debug.h"
@@ -24,40 +25,81 @@ extern uint8_t ImageBW[15000];
 extern char label[];
 extern uint8_t lastImageBW[];
 
+extern JsonDocument latestSchedule;
+extern JsonDocument schedulePayload;
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 
 String roomID;
 String serverIP;
 
-StaticJsonDocument<1536> latestSchedule;
+bool scheduleReceived = false;
 
 void mqttCallback(char *topic, byte *payload, unsigned int length)
 {
-  payload[length] = 0;
-  String json = String((char *)payload);
+  String topicStr = String(topic);
+  roomID = getRoomID();
 
-  DeserializationError error = deserializeJson(latestSchedule, json);
-  if (error)
+  if (debug_mode)
   {
-    Serial.print("[ERROR] MQTT JSON parse failed: ");
-    Serial.println(error.f_str());
-    return;
+    Serial.println("[DEBUG] MQTT callback triggered.");
+    Serial.print("[DEBUG] Received topic: ");
+    Serial.println(topicStr);
   }
 
-  Serial.println("[MQTT] Schedule updated.");
+  String scheduleTopic = "bezetpanel/schedule/response/" + roomID;
+  String timeTopic = "bezetpanel/time/response/" + roomID;
+
+  if (topicStr == scheduleTopic)
+  {
+    if (debug_mode)
+    {
+      Serial.println("[DEBUG] ✅ Schedule topic matched.");
+    }
+    onScheduleMessage(topic, payload, length);
+  }
+  else if (topicStr == timeTopic)
+  {
+    if (debug_mode)
+    {
+      Serial.println("[DEBUG] ⏱️ Time sync topic matched.");
+    }
+    onTimeMessage(topic, payload, length);
+  }
+  else
+  {
+    Serial.println("⚠️ MQTT callback received unknown topic:");
+    Serial.println("→ " + topicStr);
+  }
 }
 
 void connectMQTT()
 {
   while (!client.connected())
   {
-    Serial.print("[MQTT] Connecting...");
+    if (debug_mode)
+      Serial.print("[MQTT] Connecting to " + serverIP + " for room " + roomID + "...\n");
     if (client.connect("BezetPanelClient"))
     {
-      Serial.println("connected.");
-      String topic = "bezetpanel/schedule/" + roomID;
-      client.subscribe(topic.c_str());
+      Serial.println("✅ MQTT connected.");
+
+      roomID = getStoredRoomID(); // of getRoomID();
+
+      // 📌 Hier abonneren op response topics
+      String scheduleTopic = "bezetpanel/schedule/response/" + roomID;
+      String timeTopic = "bezetpanel/time/response/" + roomID;
+
+      client.subscribe(scheduleTopic.c_str());
+      client.subscribe(timeTopic.c_str());
+
+      if (debug_mode)
+      {
+        Serial.println("[DEBUG] Schedule subscribed to: " + scheduleTopic);
+        Serial.println("[DEBUG] Time subscribed to: " + timeTopic);
+
+        Serial.println("[MQTT] Subscribed to schedule and time response topics. with room ID: " + roomID);
+      }
     }
     else
     {
@@ -78,16 +120,16 @@ void setup()
 {
   Serial.begin(115200);
   Serial.print("----   |   Starting up BezetPanel V" + String(version) + "   |   ----\n");
-  initConfig();
 
+  initConfig();
   printStoredWiFi();
   delay(1);
 
-  Serial.println("Trying default WiFi...");
+  Serial.println("🔄 Trying default WiFi...");
   if (!tryConnectWiFi())
   {
     Serial.println("❌ Could not connect to default WiFi. Starting Config Portal.");
-    startConfigPortal(); // Captive portal
+    startConfigPortal();
   }
 
   Serial.println("✅ WiFi Connected: " + WiFi.localIP().toString());
@@ -95,31 +137,52 @@ void setup()
   serverIP = getStoredServerIP();
   roomID = getStoredRoomID();
 
-  // MQTT setup
   client.setServer(serverIP.c_str(), 1883);
   client.setCallback(mqttCallback);
 
-  // Power on screen
+  connectMQTT();
+  syncTimeFromServer();
+
+  // 🔁 Eerste keer planning ophalen
+  JsonDocument tempDoc;
+  if (fetchSchedule(tempDoc))
+  {
+    latestSchedule.clear();
+    latestSchedule.set(tempDoc);
+    Serial.println("[MQTT] ✅ Schedule fetched and stored.");
+  }
+  else
+  {
+    Serial.println("[MQTT] ⚠️ Failed to fetch schedule during setup.");
+  }
+
+  // Init scherm en leds
   pinMode(7, OUTPUT);
   digitalWrite(7, HIGH);
-
-  // Init display and LEDs
   EPD_GPIOInit();
   UI_clear_all();
-  syncTimeFromServer();
   init_leds();
+
+  Serial.println("✅ Setup complete.");
 }
 
 void loop()
 {
   client.loop();
-  if (!client.connected()) connectMQTT();
+  if (!client.connected())
+    connectMQTT();
 
-  // Periodiek status publiceren
-  if ((millis() - lastTime) > timerDelay)
+  static unsigned long lastRun = 0;
+  static unsigned long lastScheduleRefresh = 0;
+
+  unsigned long now = millis();
+
+  // 🔁 Elke 10 seconden uitvoeren
+  if (now - lastRun >= 10000UL)
   {
-    lastTime = millis();
+    lastRun = now;
 
+    // 🛜 WiFi check
     if (WiFi.status() != WL_CONNECTED && auto_AP_when_disconnected)
     {
       Serial.println("[ERROR] WiFi disconnected.");
@@ -129,11 +192,31 @@ void loop()
       return;
     }
 
-    // Publiceer status met RSSI
+    // 📡 Status publiceren
     String status = "{\"room_id\":\"" + roomID + "\",\"rssi\":" + String(WiFi.RSSI()) + "}";
     client.publish("bezetpanel/status", status.c_str());
 
-    // === UI rendering ===
+    // 🕒 Elke 30 seconden: planning ophalen
+    if (now - lastScheduleRefresh >= 30000UL)
+    {
+      if (debug_mode)
+        Serial.println("[DEBUG] Refreshing schedule...");
+
+      lastScheduleRefresh = now;
+      JsonDocument newDoc;
+      
+      if (fetchSchedule(newDoc))
+      {
+        latestSchedule.set(newDoc);
+        Serial.println("[MQTT] 🔁 Schedule refreshed.");
+      }
+      else
+      {
+        Serial.println("[MQTT] ⚠️ Failed to refresh schedule.");
+      }
+    }
+
+    // 🖥️ UI tekenen als er planning is
     JsonArray schedule = latestSchedule["schedule"];
     if (schedule.isNull())
     {
@@ -142,7 +225,6 @@ void loop()
     }
 
     Paint_NewImage(ImageBW, EPD_W, EPD_H, 0, WHITE);
-
     if (debug_mode)
     {
       Serial.print("[DEBUG] Free heap before: ");
@@ -170,5 +252,6 @@ void loop()
     memset(label, 0, sizeof(label));
   }
 
-  delay(10000);
+  // Kleine delay om CPU te ontlasten (optioneel)
+  delay(10);
 }
